@@ -3,4 +3,10 @@
     <string name="enable_gps">Enable GPS</string>
     <string name="required_for_this_app">Required for the App</string>
     <string name="enable_now">Enable Now</string>
+    <string name="where_to">Where to?</string>
+    <string name="pickup_location">Pickup Location</string>
+    <string name="take_next_ride">Take Next Ride</string>
+    <string name="request_cab">Request Cab</string>
+    <string name="requesting_your_cab">Requesting your cab</string>
+    <string name="current_location">Current Location</string>
 </resources>
