@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.view.animation.Animation
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.common.api.Status
@@ -31,7 +32,6 @@ import com.mindorks.ridesharing.data.network.NetworkService
 import com.mindorks.ridesharing.utils.*
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.activity_maps.view.*
-
 class MapsActivity : AppCompatActivity(), MapsView, OnMapReadyCallback {
 
     companion object {
@@ -53,6 +53,9 @@ class MapsActivity : AppCompatActivity(), MapsView, OnMapReadyCallback {
     private var blackPolyLine: Polyline? = null
     private var originMarker: Marker? = null
     private var destinationMarker: Marker? = null
+    private var movingCabMarker: Marker? = null
+    private var previousLatLngFromServer: LatLng? = null
+    private var currentLatLngFromServer: LatLng? = null
 
 
 
@@ -242,7 +245,7 @@ class MapsActivity : AppCompatActivity(), MapsView, OnMapReadyCallback {
                 AutocompleteActivity.RESULT_ERROR -> {
                     // error
                     val status: Status = Autocomplete.getStatusFromIntent(data!!)
-                    Log.d(TAG, status.statusMessage)
+                    Log.d(TAG, status.statusMessage!!)
                 }
 
                 Activity.RESULT_CANCELED -> {
@@ -276,37 +279,86 @@ class MapsActivity : AppCompatActivity(), MapsView, OnMapReadyCallback {
         statusTextView.text = getString(R.string.your_cab_is_booked)
     }
 
-
-    override fun showPath(latLngList: List<LatLng>) {
-        val builder = LatLngBounds.Builder()
-        for(latLng in latLngList) {
+    override fun showPath(latlngList: List<LatLng>) {
+        Log.e("TAG", "showPath")
+        val builder = LatLngBounds.builder()
+        for (latLng in latlngList) {
             builder.include(latLng)
         }
+        val bound = builder.build()
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bound, 2))
+        val polyLineOptions = PolylineOptions()
+        polyLineOptions.run {
+            color(Color.GRAY)
+            width(5f)
+            addAll(latlngList)
+        }
+        greyPolyLine = googleMap.addPolyline(polyLineOptions)
+        val blackPolyLineOptions = PolylineOptions()
+        polyLineOptions.run {
+            color(Color.GRAY)
+            width(5f)
+        }
+        blackPolyLine = googleMap.addPolyline(blackPolyLineOptions)
 
-        val bounds = builder.build()
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 2))
-        val polylineOptions = PolylineOptions()
-        polylineOptions.color(Color.GRAY)
-        polylineOptions.width(5f)
-        polylineOptions.addAll(latLngList)
-        greyPolyLine = googleMap.addPolyline(polylineOptions)
-
-        val blackPolylineOptions = PolygonOptions()
-        polylineOptions.color(Color.BLACK)
-        polylineOptions.width(5f)
-        blackPolyLine = googleMap.addPolyline(polylineOptions)
-
-        originMarker = addOriginDestinationMarkerAndGet(latLngList[0])
+        originMarker = addOriginDestinationMarkerAndGet(latlngList[0])
         originMarker?.setAnchor(0.5f, 0.5f)
-        destinationMarker = addOriginDestinationMarkerAndGet(latLngList[latLngList.size - 1])
+        destinationMarker = addOriginDestinationMarkerAndGet(latlngList[latlngList.size-1])
         destinationMarker?.setAnchor(0.5f, 0.5f)
 
-        val polylineAnimator = AnimationUtils.polyLineAnimator()
-        polylineAnimator.addUpdateListener { valueAnimator ->
-            val percentValue = (valueAnimator.animatedValue as Int)
-            val index = (greyPolyLine?.points!!.size) * (percentValue / 100.0f).toInt()
+        val polyLineAnimator = AnimationUtils.polyLineAnimator()
+        polyLineAnimator.addUpdateListener {
+            val percentValue = (it.animatedValue as Int)
+            val index = (greyPolyLine?.points?.size)!! * (percentValue/100.0f).toInt()
             blackPolyLine?.points = greyPolyLine?.points!!.subList(0, index)
         }
-        polylineAnimator.start()
+        polyLineAnimator.start()
+    }
+
+    override fun updateCabLocation(latLng: LatLng) {
+        if(movingCabMarker == null) {
+            movingCabMarker = addCarMarkerAndGet(latLng)
+        }
+        if(previousLatLngFromServer == null) {
+            currentLatLngFromServer = latLng
+            previousLatLngFromServer = currentLatLngFromServer
+            movingCabMarker?.position = currentLatLngFromServer
+            movingCabMarker?.setAnchor(0.5f, 0.5f)
+            animationCamera(currentLatLngFromServer)
+        }else {
+            previousLatLngFromServer = currentLatLngFromServer
+            currentLatLngFromServer = latLng
+            val valueAnimator = AnimationUtils.cabAnimator()
+            valueAnimator.addUpdateListener { va ->
+                if(currentLatLngFromServer != null && previousLatLngFromServer != null) {
+                    val multiplier = va.animatedFraction
+                    val nextLocation = LatLng(
+                        multiplier * currentLatLngFromServer!!.latitude + ( 1 - multiplier) * previousLatLngFromServer!!.latitude,
+                        multiplier * currentLatLngFromServer!!.longitude + ( 1 - multiplier) * previousLatLngFromServer!!.longitude
+                    )
+                    movingCabMarker?. position = nextLocation
+                    val rotation = MapUtils.getRotation(previousLatLngFromServer!!, nextLocation)
+                    if(!rotation.isNaN()) {
+                        movingCabMarker?.rotation = rotation
+                    }
+                    movingCabMarker?.setAnchor(0.5f, 0.5f)
+                    animationCamera(nextLocation)
+                }
+                valueAnimator.start()
+            }
+        }
+
+    }
+
+    override fun informCabIsArriving() {
+        statusTextView.text = getString(R.string.your_cab_is_arriving)
+    }
+
+    override fun informCabArrived() {
+        statusTextView.text = getString(R.string.your_cab_has_arrived)
+        greyPolyLine?.remove()
+        blackPolyLine?.remove()
+        originMarker?.remove()
+        destinationMarker?.remove()
     }
 }

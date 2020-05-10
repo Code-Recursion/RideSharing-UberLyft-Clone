@@ -10,5 +10,7 @@
     <string name="requesting_your_cab">Requesting your cab</string>
     <string name="current_location">Current Location</string>
     <string name="your_cab_is_booked">Your Cab is Booked</string>
+    <string name="your_cab_is_arriving">Your Cab is Arriving</string>
+    <string name="your_cab_has_arrived">Your cab has arrived</string>
 
 </resources>
