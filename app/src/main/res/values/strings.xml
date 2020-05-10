@@ -5,7 +5,6 @@
     <string name="enable_now">Enable Now</string>
     <string name="where_to">Where to?</string>
     <string name="pickup_location">Pickup Location</string>
-    <string name="take_next_ride">Take Next Ride</string>
     <string name="request_cab">Request Cab</string>
     <string name="requesting_your_cab">Requesting your cab</string>
     <string name="current_location">Current Location</string>
@@ -14,5 +13,6 @@
     <string name="your_cab_has_arrived">Your cab has arrived</string>
     <string name="you_are_on_a_trip">You are on a Trip</string>
     <string name="trip_end">Trip End</string>
-
+    <string name ="take_next_ride">Take Next Ride</string>
+    <string name="route_not_available_choose_different_locations">Route not available choose different locations</string>
 </resources>
