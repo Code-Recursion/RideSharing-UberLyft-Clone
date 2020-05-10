@@ -10,6 +10,9 @@ object Constants {
     const val LOCATION = "location"
     const val CAB_IS_ARRIVING ="cabIsArriving"
     const val CAB_ARRIVED = "cabArrived"
+    const val TRIP_PATH = "tripPath"
+    const val TRIP_START = "tripStart"
+    const val TRIP_END = "tripEnd"
     const val LAT = "lat"
     const val LNG = "lng"
 }

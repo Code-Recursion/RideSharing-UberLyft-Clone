@@ -14,4 +14,8 @@ interface MapsView {
     fun informCabIsArriving()
 
     fun informCabArrived()
+
+    fun informTripStart()
+
+    fun informTripEnd()
 }
