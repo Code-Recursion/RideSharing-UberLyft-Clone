@@ -5,16 +5,20 @@ import android.graphics.*
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.mindorks.ridesharing.R
-import java.lang.Math.abs
-import java.lang.Math.atan
+import kotlin.math.abs
+import kotlin.math.atan
+
 
 object MapUtils {
-    fun getCarBitmap(context:Context) : Bitmap {
+
+    private const val TAG = "MapUtils"
+
+    fun getCarBitmap(context: Context): Bitmap {
         val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.ic_car)
         return Bitmap.createScaledBitmap(bitmap, 50, 100, false)
     }
 
-    fun getDestinationBitman(): Bitmap {
+    fun getDestinationBitmap(): Bitmap {
         val height = 20
         val width = 20
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
@@ -46,7 +50,7 @@ object MapUtils {
                     (90 - Math.toDegrees(atan(lngDifference / latDifference)) + 270).toFloat()
             }
         }
-
+        Log.d(TAG, "getRotation: $rotation")
         return rotation
     }
 }

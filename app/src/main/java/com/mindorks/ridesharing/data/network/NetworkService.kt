@@ -4,7 +4,9 @@ import com.mindorks.ridesharing.simulator.WebSocket
 import com.mindorks.ridesharing.simulator.WebSocketListener
 
 class NetworkService {
-    fun cretateWebSocket(webSocketListener: WebSocketListener) : WebSocket {
+
+    fun createWebSocket(webSocketListener: WebSocketListener): WebSocket {
         return WebSocket(webSocketListener)
     }
+
 }
